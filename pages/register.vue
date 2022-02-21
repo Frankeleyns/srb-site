@@ -100,7 +100,6 @@ export default {
       // 1.调用 axios, 请求后端接口
       let mobile = this.userInfo.mobile
       if(mobile) {
-        alert("发送验证码")
         this.$axios.$get('/api/sms/send/' + mobile).then(res => {
           this.$message.success(res.message)
         })
