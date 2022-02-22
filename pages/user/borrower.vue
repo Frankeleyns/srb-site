@@ -227,38 +227,116 @@ export default {
   },
 
   methods: {
-    // 查询字典信息
-    initSelected() {
-      this.$axios.$get("/api/core/dict/findByDictCode/industry").then(res => {
-        this.industryList = res.data.list;
-      });
+    // 提交申请
+    save(){
+      this.submitBtnDisabled = true;
+      this.$axios.$post('/api/core/borrower/save', this.borrower)
+        .then(res => {
+          this.active = 1;
+        })
+    },
 
-      this.$axios.$get("/api/core/dict/findByDictCode/education").then(res => {
-        this.educationList = res.data.list;
-      });
+    // 获取借款状态
+    getBorrowerStatus() {
+      this.$axios
+        .$get("/api/core/borrower/auth/getBorrowerStatus")
+        .then((res) => {
+          this.borrowerStatus = res.data.borrowerStatus;
+          //alert(this.borrowerStatus)
+          // 未申请额度
+          if (this.borrowerStatus == 0) {
+            this.active = 0;
+            this.initSelected();
+          }
 
-      this.$axios.$get("/api/core/dict/findByDictCode/income").then(res => {
-        this.incomeList = res.data.list;
-      });
+          // 额度申请中
+          if (this.borrowerStatus == 1) {
+            this.active = 1;
+          }
 
-      this.$axios.$get("/api/core/dict/findByDictCode/returnSource").then(res => {
-        this.returnSourceList = res.data.list;
-      });
+          // 额度申请完成
+          if (this.borrowerStatus == 2) {
+            this.active = 2;
+          }
 
-      this.$axios.$get("/api/core/dict/findByDictCode/relation").then(res => {
-        this.contactsRelationList = res.data.list;
+          // 额度申请失败
+          if (this.borrowerStatus == -1) {
+            this.active = -1;
+          }
+        });
+    },
+
+    onUploadSuccessIdCard1(response, file) {
+      this.onUploadSuccess(response, file, "idCard1");
+    },
+
+    onUploadSuccessIdCard2(response, file) {
+      this.onUploadSuccess(response, file, "idCard2");
+    },
+
+    onUploadSuccessHouse(response, file) {
+      this.onUploadSuccess(response, file, "house");
+    },
+
+    onUploadSuccessCar(response, file) {
+      this.onUploadSuccess(response, file, "car");
+    },
+
+    onUploadSuccess(response, file, type) {
+      if (response.code != 0) {
+        this.$message.error(response.message);
+        return;
+      }
+
+      // 上传文件成功后，暂时保存到前端，等用户点击提交的时候，保存到后台数据库
+      this.borrower.borrowerAttachList.push({
+        imageName: file.name,
+        imageUrl: response.data.fileUrl,
+        imageType: type,
       });
     },
 
-    save() {
-      alert("保存借款人信息");
-      this.submitBtnDisabled = true;
-      this.active = 1;
+    // 删除文件
+    onUploadRemove(file, fileList) {
+      this.$axios
+        .$delete("/api/oss/file/remove?url=" + file.response.data.fileUrl)
+        .then((res) => {
+          this.borrower.borrowerAttachList = this.borrower.borrowerAttachList.filter(
+            (item) => item.imageUrl != file.response.data.fileUrl
+          );
+        });
+    },
+
+    // 查询字典信息
+    initSelected() {
+      this.$axios.$get("/api/core/dict/findByDictCode/industry").then((res) => {
+        this.industryList = res.data.list;
+      });
+
+      this.$axios
+        .$get("/api/core/dict/findByDictCode/education")
+        .then((res) => {
+          this.educationList = res.data.list;
+        });
+
+      this.$axios.$get("/api/core/dict/findByDictCode/income").then((res) => {
+        this.incomeList = res.data.list;
+      });
+
+      this.$axios
+        .$get("/api/core/dict/findByDictCode/returnSource")
+        .then((res) => {
+          this.returnSourceList = res.data.list;
+        });
+
+      this.$axios.$get("/api/core/dict/findByDictCode/relation").then((res) => {
+        this.contactsRelationList = res.data.list;
+      });
     },
   },
 
   mounted() {
-    this.initSelected();
+    this.getBorrowerStatus();
   },
 };
 </script>
