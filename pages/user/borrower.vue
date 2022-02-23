@@ -200,10 +200,17 @@
           >
           </el-alert>
         </div>
+
+        <NuxtLink to="/user/apply" v-if="borrowerStatus === 2">
+          <el-button style="margin-top:20px;" type="success">
+            我要借款
+          </el-button>
+        </NuxtLink>
       </div>
     </div>
   </div>
 </template>
+
 <script>
 export default {
   data() {
@@ -228,12 +235,13 @@ export default {
 
   methods: {
     // 提交申请
-    save(){
+    save() {
       this.submitBtnDisabled = true;
-      this.$axios.$post('/api/core/borrower/save', this.borrower)
-        .then(res => {
+      this.$axios
+        .$post("/api/core/borrower/save", this.borrower)
+        .then((res) => {
           this.active = 1;
-        })
+        });
     },
 
     // 获取借款状态
